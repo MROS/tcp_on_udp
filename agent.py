@@ -6,7 +6,6 @@ import sys
 # import time
 import json
 
-# TODO: bytes, string conversion may cause problem?
 
 BUF_SIZE = setting.DATA_SIZE * 2
 
@@ -17,22 +16,35 @@ else:
     drop_rate = float(sys.argv[1])
 print("drop rate is {0}".format(drop_rate))
 
-agent = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-agent.bind(('localhost', setting.AGENT_PORT))
-print("agent bind on {0}".format(setting.AGENT_PORT))
+class Agent:
+    def __init__(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('localhost', setting.AGENT_PORT))
+        print("agent bind on {0}".format(setting.AGENT_PORT))
+        self.output = open("/tmp/output", "wb")
 
-transfer = 0
-total = 0
-while True:
-    (raw_data, recv) = agent.recvfrom(BUF_SIZE)
-    pkt = packet.Packet(json.loads(raw_data.decode("utf-8")))
-    print(pkt.content)
-    total += 1
-    transfer += 1
-    print("get data #{0}".format(transfer))
-    if random.random() < drop_rate:
-        print("drop data #{0}, loss rate #{1}".format(transfer, (total - transfer) / total))
-        transfer -= 1
-    else:
-        print("forward data #{0}, loss rate #{1}".format(transfer, (total - transfer) / total))
-    # agent.sendto()
+    def shutdown(self):
+        self.output.close()
+        self.sock.close()
+
+    def start(self):
+        transfer = 0
+        total = 0
+        while True:
+            (raw_data, recv) = self.sock.recvfrom(BUF_SIZE)
+            pkt = packet.parse_packet(raw_data)
+            if "fin" in pkt.content:
+                self.shutdown()
+                break
+            self.output.write(pkt.content["data"])
+            total += 1; transfer += 1
+            print("get data #{0}".format(transfer))
+            if random.random() < drop_rate:
+                print("drop data #{0}, loss rate #{1}".format(transfer, (total - transfer) / total))
+                transfer -= 1
+            else:
+                print("forward data #{0}, loss rate #{1}".format(transfer, (total - transfer) / total))
+                # agent.sendto()
+
+Agent().start()
+

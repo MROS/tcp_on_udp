@@ -4,7 +4,6 @@ from setting import *
 from packet import *
 
 threshold = 16
-receiver_buf = 32
 
 if len(sys.argv) != 2:
     print("usage: python agent.py filename")
@@ -18,16 +17,18 @@ class Sender:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(SENDER_ADDRESS)
-        self.file = open(filename)
-        self.target_addr = AGENT_ADDRESS
+        self.file = open(filename, "rb")
+        self.threshold = threshold
+        self.window_size = 1
         self.seq = 0
 
     def start(self):
         data = self.file.read(DATA_SIZE)
-        while data != '':
-            to_send = create_packet(self.seq, data).to_s()
-            self.sock.sendto(bytes(to_send, "utf-8"), AGENT_ADDRESS)
+        while data != b'':
+            to_send = create_packet(self.seq, data).to_binary()
+            self.sock.sendto(to_send, AGENT_ADDRESS)
 
             data = self.file.read(DATA_SIZE)
+        self.sock.sendto(FIN.to_binary(), AGENT_ADDRESS)
 
 Sender().start()
