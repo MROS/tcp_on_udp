@@ -20,6 +20,7 @@ class Sender:
         self.file = open(filename, "rb")
         self.threshold = threshold
         self.window_size = 1
+        self.data_sent = 0
         self.seq = 0
 
     def start(self):
@@ -27,6 +28,8 @@ class Sender:
         while data != b'':
             to_send = create_packet(self.seq, data).to_binary()
             self.sock.sendto(to_send, AGENT_ADDRESS)
+            self.data_sent += 1
+            print("send data #{0}".format(self.data_sent))
 
             data = self.file.read(DATA_SIZE)
         self.sock.sendto(FIN.to_binary(), AGENT_ADDRESS)

@@ -13,11 +13,23 @@ def parse_packet(s):
     return Packet(pickle.loads(s))
 
 
-def create_ack(seq, ack):
-    return Packet({"seq": seq, "ack": ack})
+def create_ack(ack):
+    return Packet({"ack": ack})
 
 
 def create_packet(seq, data):
     return Packet({"seq": seq, "data": data})
 
 FIN = Packet({"fin": True})
+
+
+def is_fin(pkt):
+    return "fin" in pkt.content
+
+
+def is_ack(pkt):
+    return "ack" in pkt.content
+
+
+def is_data(pkt):
+    return "data" in pkt.content
