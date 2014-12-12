@@ -78,13 +78,19 @@ class Sender:
 
         self.window = CongestionWindow(buf)
         print("file read, total {0} packet".format(len(buf)))
+        self.sended = [False] * (count + 1)
 
     def send_data(self, buf):
         if buf == []:
             return False
         # print("send from {0} to {1}".format(buf[0].content["seq"], buf[-1].content["seq"]))
         for pkt in buf:
-            print("send #{0}, winSize = {1}".format(pkt.content["seq"], self.window.size))
+            seq = pkt.content["seq"]
+            if self.sended[seq]:
+                print("resend #{0}, winSize = {1}".format(pkt.content["seq"], self.window.size))
+            else:
+                print("send #{0}, winSize = {1}".format(pkt.content["seq"], self.window.size))
+                self.sended[seq] = True
             self.sock.sendto(pkt.to_binary(), AGENT_ADDRESS)
         return True
 
@@ -94,8 +100,8 @@ class Sender:
 
     def timeout(self):
         buf = self.window.decrease()
-        self.send_data(buf)
         print("time out, threshold = {0}".format(self.window.threshold))
+        self.send_data(buf)
 
     def parse_ack(self, ack):
         print("recv ack #{0}".format(ack))
