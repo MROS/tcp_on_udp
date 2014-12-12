@@ -1,8 +1,15 @@
 import socket
 from packet import *
 from setting import *
+import sys
 
 DEFAULT_BUF = 32
+
+if len(sys.argv) != 2:
+    print("usage: python receiver.py output")
+    exit()
+else:
+    filename = sys.argv[1]
 
 
 class Buffer:
@@ -43,7 +50,7 @@ class Receiver:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(RECEIVER_ADDRESS)
         self.target_addr = AGENT_ADDRESS
-        self.output = open("/tmp/output", "wb")
+        self.output = open(filename, "wb")
         self.data_get = 0
         self.buffer = Buffer()
 
