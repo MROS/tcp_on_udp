@@ -82,8 +82,9 @@ class Sender:
     def send_data(self, buf):
         if buf == []:
             return False
-        print("send from {0} to {1}".format(buf[0].content["seq"], buf[-1].content["seq"]))
+        # print("send from {0} to {1}".format(buf[0].content["seq"], buf[-1].content["seq"]))
         for pkt in buf:
+            print("send #{0}, winSize = {1}".format(pkt.content["seq"], self.window.size))
             self.sock.sendto(pkt.to_binary(), AGENT_ADDRESS)
         return True
 
@@ -92,12 +93,13 @@ class Sender:
         return parse_packet(raw_data)
 
     def timeout(self):
-        print("time out")
-        return self.window.decrease()
+        buf = self.window.decrease()
+        self.send_data(buf)
+        print("time out, threshold = {0}".format(self.window.threshold))
 
     def parse_ack(self, ack):
         print("recv ack #{0}".format(ack))
-        print("leftmost = {0}".format(self.window.leftmost))
+        # print("leftmost = {0}".format(self.window.leftmost))
         if self.window.leftmost + 1 == ack == len(self.window.buf):
             return "finish"
         elif ack == self.window.leftmost + 1:
@@ -136,15 +138,14 @@ class Sender:
                 start = time.time()
                 (avai, _, _) = select.select([self.sock], [], [], time_remain)
                 time_remain -= (time.time() - start)
-                print("time remain {0}".format(time_remain))
+                # print("time remain {0}".format(time_remain))
                 start = time.time()
 
             # 將 self.sock 讀乾淨
 
             if not avai or time_remain <= 0:
                 # time out
-                buf = self.timeout()
-                self.send_data(buf)
+                self.timeout()
                 time_remain = retransmit_time
             else:
                 pkt = self.read_a_pkt()
@@ -155,7 +156,7 @@ class Sender:
                     self.finish()
                     break
                 elif r == "leftmost":
-                    print("hit leftmost")
+                    # print("hit leftmost")
                     buf = self.window.increase_then_pop()
                     self.send_data(buf)
                     time_remain = retransmit_time

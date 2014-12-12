@@ -33,8 +33,8 @@ class Agent:
     def handle_data(self, pkt):
         self.data_get += 1
         seq = pkt.content["seq"]
-        if self.last_seq.__class__.__name__ == "int" and self.last_seq + 1 != seq:
-            print("not in order")
+        # if self.last_seq.__class__.__name__ == "int" and self.last_seq + 1 != seq:
+        #     print("not in order")
         self.last_seq = seq
         print("get data #{0}".format(seq))
         if random.random() < drop_rate:
@@ -45,7 +45,7 @@ class Agent:
             print("forward data #{0}, loss rate #{1}".format(seq, self.drop_rate()))
 
     def handle_ack(self, pkt):
-        print("-------------- handle ack ----------------")
+        # print("-------------- handle ack ----------------")
         self.ack_num += 1
         print("get ack #{0}".format(pkt.content["ack"]))
         self.sock.sendto(pkt.to_binary(), setting.SENDER_ADDRESS)

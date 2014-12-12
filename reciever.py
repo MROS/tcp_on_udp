@@ -13,7 +13,7 @@ class Buffer:
         # self.index = 1
 
     def is_full(self):
-        print(self.data)
+        # print(self.data)
         for i in self.data:
             if i == None:
                 return False
@@ -31,6 +31,8 @@ class Buffer:
         # print("push {0}".format(seq))
         if self.base <= seq < self.right() and self.data[seq - self.base] == None:
             self.data[seq - self.base] = pkt
+            return True
+        return False
 
     def is_exceed(self, seq):
         return seq >= self.right()
@@ -63,6 +65,7 @@ class Reciever:
             self.output.write(data)
 
         self.buffer.flush()
+        print("flush")
 
     def send_ack(self, seq):
         ack_pkt = create_ack(seq)
@@ -71,13 +74,15 @@ class Reciever:
     def handle_data(self, pkt):
         seq = pkt.content["seq"]
         if self.buffer.is_exceed(seq):
-            print("ignore #{0}".format(seq))
+            print("drop data #{0}".format(seq))
             if self.buffer.is_full():
                 self.flush()
         elif not self.buffer.is_exceed(seq):
-            self.buffer.push(pkt)
+            res = self.buffer.push(pkt)
             self.send_ack(seq)
             print("send ack #{0}".format(seq))
+            if not res:
+                print("ignore data #{0}".format(seq))
 
     def start(self):
         while True:
