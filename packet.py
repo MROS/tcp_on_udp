@@ -20,11 +20,16 @@ def create_ack(ack):
 def create_packet(seq, data):
     return Packet({"seq": seq, "data": data})
 
-FIN = Packet({"fin": True})
+FIN = Packet({"seq": "fin"})
+FIN_ACK = Packet({"ack": "fin"})
+
+
+def is_finack(pkt):
+    return "ack" in pkt.content and pkt.content["ack"] == "fin"
 
 
 def is_fin(pkt):
-    return "fin" in pkt.content
+    return "seq" in pkt.content and pkt.content["seq"] == "fin"
 
 
 def is_ack(pkt):
