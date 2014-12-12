@@ -38,7 +38,7 @@ class Buffer:
         return seq >= self.right()
 
 
-class Reciever:
+class Receiver:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(RECEIVER_ADDRESS)
@@ -97,4 +97,4 @@ class Reciever:
                 print("recv data #{0}".format(pkt.content["seq"]))
                 self.handle_data(pkt)
 
-Reciever().start()
+Receiver().start()
