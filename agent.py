@@ -33,7 +33,7 @@ class Agent:
     def handle_data(self, pkt):
         self.data_get += 1
         seq = pkt.content["seq"]
-        if self.last_seq + 1 != seq:
+        if self.last_seq.__class__.__name__ == "int" and self.last_seq + 1 != seq:
             print("not in order")
         self.last_seq = seq
         print("get data #{0}".format(seq))

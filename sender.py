@@ -8,7 +8,7 @@ import time
 
 # 投機取巧一次讀取整個檔案到buffer好了
 
-retransmit_time = 10**(-2)
+retransmit_time = 10**(-3)
 threshold = 16
 
 if len(sys.argv) != 2:
